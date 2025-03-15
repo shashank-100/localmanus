@@ -11,4 +11,5 @@ AGENT_LLM_MAP: dict[str, LLMType] = {
     "coder": "reasoning",  # Code execution tasks
     "file_manager": "basic",  # File operations
     "browser": "vision",  # Browser control needs the vision model
+    "reporter": "basic",  # Final report writing
 }
