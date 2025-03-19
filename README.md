@@ -22,6 +22,7 @@ LangManus is a community-driven AI automation framework that builds upon the inc
 
 ## Table of Contents
 - [Quick Start](#quick-start)
+- [Project Statement](#project-statement)
 - [Architecture](#architecture)
 - [Features](#features)
 - [Why LangManus?](#why-langmanus)
@@ -55,6 +56,25 @@ cp .env.example .env
 # Run the project
 uv run main.py
 ```
+
+## Project Statement
+This is an academically driven open-source project, developed by a group of former colleagues in our spare time. It aims to explore and exchange ideas in the fields of Multi-Agent and DeepResearch.
+- **Purpose**: The primary purpose of this project is academic research, participation in the GAIA leaderboard, and the future publication of related papers.
+- **Independence Statement**: This project is entirely independent and unrelated to our primary job responsibilities. It does not represent the views or positions of our employers or any organizations.
+- **No Association**: This project has no association with Manus (whether it refers to a company, organization, or any other entity).
+- **Clarification Statement**: We have not promoted this project on any social media platforms. Any inaccurate reports related to this project are not aligned with its academic spirit.
+- **Contribution Management**: Issues and PRs will be addressed during our free time and may experience delays. We appreciate your understanding.
+- **Disclaimer**: This project is open-sourced under the MIT License. Users assume all risks associated with its use. We disclaim any responsibility for any direct or indirect consequences arising from the use of this project.
+
+## Project Statement
+
+This is an academically driven open source project, developed in spare time to explore Multi-Agent and DeepResearch technologies.
+- **Purpose**: Academic research, participation in the GAIA leaderboard, and future publications.
+- **Independence**: This project is independent of our day jobs and does not represent the position of any company or organization.
+- **No Affiliation**: This project has no affiliation with Manus, in any form.
+- **Clarification**: We have not promoted this project on social media; inaccurate reports are unrelated to its academic spirit.
+- **Contributions**: Issues and PRs are handled in our spare time and may be delayed.
+- **Disclaimer**: Open sourced under MIT. Use at your own risk; we accept no liability for any consequences of use.
 
 ## Architecture
 
