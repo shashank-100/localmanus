@@ -1,5 +1,5 @@
 """
-Server script for running the LangManus API.
+Server script for running the localmanus API.
 """
 
 import logging
@@ -15,7 +15,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
-    logger.info("Starting LangManus API server")
+    logger.info("Starting localmanus API server")
     reload = True
     if sys.platform.startswith("win"):
         reload = False

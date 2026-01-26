@@ -1,4 +1,4 @@
-# LangManus
+# localmanus
 
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -9,7 +9,7 @@
 
 > Come From Open Source, Back to Open Source
 
-LangManus is a community-driven AI automation framework that builds upon the incredible work of the open source community. Our goal is to combine language models with specialized tools for tasks like web search, crawling, and Python code execution, while giving back to the community that made this possible.
+localmanus is a community-driven AI automation framework that builds upon the incredible work of the open source community. Our goal is to combine language models with specialized tools for tasks like web search, crawling, and Python code execution, while giving back to the community that made this possible.
 
 ## Demo Video
 
@@ -18,7 +18,7 @@ LangManus is a community-driven AI automation framework that builds upon the inc
 [![Demo](./assets/demo.gif)](./assets/demo.mp4)
 
 - [View on YouTube](https://youtu.be/sZCHqrQBUGk)
-- [Download Video](https://github.com/langmanus/langmanus/blob/main/assets/demo.mp4)
+- [Download Video](https://github.com/shashank-100/localmanus/blob/main/assets/demo.mp4)
 
 ## Table of Contents
 
@@ -26,7 +26,7 @@ LangManus is a community-driven AI automation framework that builds upon the inc
 - [Project Statement](#project-statement)
 - [Architecture](#architecture)
 - [Features](#features)
-- [Why LangManus?](#why-langmanus)
+- [Why localmanus?](#why-localmanus)
 - [Setup](#setup)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
@@ -43,8 +43,8 @@ LangManus is a community-driven AI automation framework that builds upon the inc
 
 ```bash
 # Clone the repository
-git clone https://github.com/langmanus/langmanus.git
-cd langmanus
+git clone https://github.com/shashank-100/localmanus.git
+cd localmanus
 
 # Install dependencies, uv will take care of the python interpreter and venv creation
 uv sync
@@ -85,9 +85,9 @@ This is an academically driven open source project, developed in spare time to e
 
 ## Architecture
 
-LangManus implements a hierarchical multi-agent system where a supervisor coordinates specialized agents to accomplish complex tasks:
+localmanus implements a hierarchical multi-agent system where a supervisor coordinates specialized agents to accomplish complex tasks:
 
-![LangManus Architecture](./assets/architecture.png)
+![localmanus Architecture](./assets/architecture.png)
 
 The system consists of the following agents working together:
 
@@ -129,7 +129,7 @@ The system consists of the following agents working together:
   - Multi-agent orchestration
   - Task delegation and monitoring
 
-## Why LangManus?
+## Why localmanus?
 
 We believe in the power of open source collaboration. This project wouldn't be possible without the amazing work of projects like:
 
@@ -149,7 +149,7 @@ We're committed to giving back to the community and welcome contributions of all
 
 ### Installation
 
-LangManus leverages [uv](https://github.com/astral-sh/uv) as its package manager to streamline dependency management.
+localmanus leverages [uv](https://github.com/astral-sh/uv) as its package manager to streamline dependency management.
 Follow the steps below to set up a virtual environment and install the necessary dependencies:
 
 ```bash
@@ -167,7 +167,7 @@ By completing these steps, you'll ensure your environment is properly configured
 
 ### Configuration
 
-LangManus uses a three-tier LLM system with separate configurations for reasoning, basic tasks, and vision-language tasks. Create a `.env` file in the project root and configure the following environment variables:
+localmanus uses a three-tier LLM system with separate configurations for reasoning, basic tasks, and vision-language tasks. Create a `.env` file in the project root and configure the following environment variables:
 
 ```ini
 # Reasoning LLM Configuration (for complex reasoning tasks)
@@ -197,7 +197,7 @@ CHROME_PROXY_USERNAME=  # Optional, default is None
 CHROME_PROXY_PASSWORD=  # Optional, default is None
 ```
 
-In addition to supporting LLMs compatible with OpenAI, LangManus also supports Azure LLMs. The configuration method is as follows:
+In addition to supporting LLMs compatible with OpenAI, localmanus also supports Azure LLMs. The configuration method is as follows:
 
 ```ini
 # AZURE LLM Config
@@ -234,7 +234,7 @@ cp .env.example .env
 
 ### Configure Pre-commit Hook
 
-LangManus includes a pre-commit hook that runs linting and formatting checks before each commit. To set it up:
+localmanus includes a pre-commit hook that runs linting and formatting checks before each commit. To set it up:
 
 1. Make the pre-commit script executable:
 
@@ -259,7 +259,7 @@ The pre-commit hook will automatically:
 
 ### Basic Execution
 
-To run LangManus with default settings:
+To run localmanus with default settings:
 
 ```bash
 uv run main.py
@@ -267,7 +267,7 @@ uv run main.py
 
 ### API Server
 
-LangManus provides a FastAPI-based API server with streaming support:
+localmanus provides a FastAPI-based API server with streaming support:
 
 ```bash
 # Start the API server
@@ -291,7 +291,7 @@ The API server exposes the following endpoints:
 
 ### Advanced Configuration
 
-LangManus can be customized through various configuration files in the `src/config` directory:
+localmanus can be customized through various configuration files in the `src/config` directory:
 
 - `env.py`: Configure LLM models, API keys, and base URLs
 - `tools.py`: Adjust tool-specific settings (e.g., Tavily search results limit)
@@ -299,7 +299,7 @@ LangManus can be customized through various configuration files in the `src/conf
 
 ### Agent Prompts System
 
-LangManus uses a sophisticated prompting system in the `src/prompts` directory to define agent behaviors and responsibilities:
+localmanus uses a sophisticated prompting system in the `src/prompts` directory to define agent behaviors and responsibilities:
 
 #### Core Agent Roles
 
@@ -332,27 +332,27 @@ Each agent's prompt is defined in a separate markdown file, making it easy to mo
 
 ## Docker
 
-LangManus can be run in a Docker container. default serve api on port 8000.
+localmanus can be run in a Docker container. default serve api on port 8000.
 
 Before run docker, you need to prepare environment variables in `.env` file.
 
 ```bash
-docker build -t langmanus .
-docker run --name langmanus -d --env-file .env -e CHROME_HEADLESS=True -p 8000:8000 langmanus
+docker build -t localmanus .
+docker run --name localmanus -d --env-file .env -e CHROME_HEADLESS=True -p 8000:8000 localmanus
 ```
 
 You can also just run the cli with docker.
 
 ```bash
-docker build -t langmanus .
-docker run --rm -it --env-file .env -e CHROME_HEADLESS=True langmanus uv run python main.py
+docker build -t localmanus .
+docker run --rm -it --env-file .env -e CHROME_HEADLESS=True localmanus uv run python main.py
 ```
 
 ## Web UI
 
-LangManus provides a default web UI.
+localmanus provides a default web UI.
 
-Please refer to the [langmanus/langmanus-web-ui](https://github.com/langmanus/langmanus-web) project for more details.
+Please refer to the [localmanus/localmanus-web-ui](https://github.com/shashank-100/localmanus-web) project for more details.
 
 ## Development
 
@@ -391,4 +391,4 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## Acknowledgments
 
-Special thanks to all the open source projects and contributors that make LangManus possible. We stand on the shoulders of giants.
+Special thanks to all the open source projects and contributors that make localmanus possible. We stand on the shoulders of giants.
