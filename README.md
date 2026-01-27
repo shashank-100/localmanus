@@ -25,9 +25,6 @@ localmanus is a community-driven AI automation framework that builds upon the in
 - [Docker](#docker)
 - [Web UI](#web-ui)
 - [Development](#development)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgments](#acknowledgments)
 
 ## Quick Start
 
@@ -338,25 +335,3 @@ pytest tests/integration/test_workflow.py
 # Run with coverage
 make coverage
 ```
-
-### Code Quality
-
-```bash
-# Run linting
-make lint
-
-# Format code
-make format
-```
-
-## Contributing
-
-We welcome contributions of all kinds! Whether you're fixing a typo, improving documentation, or adding a new feature, your help is appreciated. Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to get started.
-
-## License
-
-This project is open source and available under the [MIT License](LICENSE).
-
-## Acknowledgments
-
-Special thanks to all the open source projects and contributors that make localmanus possible. We stand on the shoulders of giants.
