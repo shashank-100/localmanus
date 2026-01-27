@@ -22,8 +22,7 @@ localmanus is a community-driven AI automation framework that builds upon the in
   - [Installation](#installation)
   - [Configuration](#configuration)
 - [Usage](#usage)
-- [Docker](#docker)
-- [Web UI](#web-ui)
+## Web UI
 - [Development](#development)
 
 ## Quick Start
@@ -294,24 +293,6 @@ The prompts system uses a template engine ([`src/prompts/template.py`](src/promp
 - Formats system prompts for each agent
 
 Each agent's prompt is defined in a separate markdown file, making it easy to modify behavior and responsibilities without changing the underlying code.
-
-## Docker
-
-localmanus can be run in a Docker container. default serve api on port 8000.
-
-Before run docker, you need to prepare environment variables in `.env` file.
-
-```bash
-docker build -t localmanus .
-docker run --name localmanus -d --env-file .env -e CHROME_HEADLESS=True -p 8000:8000 localmanus
-```
-
-You can also just run the cli with docker.
-
-```bash
-docker build -t localmanus .
-docker run --rm -it --env-file .env -e CHROME_HEADLESS=True localmanus uv run python main.py
-```
 
 ## Web UI
 
