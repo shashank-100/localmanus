@@ -4,7 +4,7 @@ localmanus is a community-driven AI automation framework that builds upon the in
 
 ## Demo Video
 
-> **Task**: Calculate the influence index of DeepSeek R1 on HuggingFace. This index can be designed by considering a weighted sum of factors such as followers, downloads, and likes.
+> **Task**: Calculate the influence index of the latest DeepSeek model on Hugging Face, currently `deepseek-ai/DeepSeek-V4-Pro-0813`. Design the index as a weighted sum of available factors such as downloads and likes, and include followers only when an official public count is available.
 
 [![Demo](./assets/demo.gif)](./assets/demo.mp4)
 
