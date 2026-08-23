@@ -968,68 +968,6 @@ wheels = [
 ]
 
 [[package]]
-name = "lang-manus"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "browser-use" },
-    { name = "fastapi" },
-    { name = "httpx" },
-    { name = "json-repair" },
-    { name = "langchain-community" },
-    { name = "langchain-deepseek" },
-    { name = "langchain-experimental" },
-    { name = "langchain-openai" },
-    { name = "langgraph" },
-    { name = "litellm" },
-    { name = "markdownify" },
-    { name = "numpy" },
-    { name = "pandas" },
-    { name = "python-dotenv" },
-    { name = "readabilipy" },
-    { name = "socksio" },
-    { name = "sse-starlette" },
-    { name = "uvicorn" },
-    { name = "yfinance" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "black" },
-]
-test = [
-    { name = "pytest" },
-    { name = "pytest-cov" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "black", marker = "extra == 'dev'", specifier = ">=24.2.0" },
-    { name = "browser-use", specifier = ">=0.1.0" },
-    { name = "fastapi", specifier = ">=0.110.0" },
-    { name = "httpx", specifier = ">=0.28.1" },
-    { name = "json-repair", specifier = ">=0.7.0" },
-    { name = "langchain-community", specifier = ">=0.3.19" },
-    { name = "langchain-deepseek", specifier = ">=0.1.2" },
-    { name = "langchain-experimental", specifier = ">=0.3.4" },
-    { name = "langchain-openai", specifier = ">=0.3.8" },
-    { name = "langgraph", specifier = ">=0.3.5" },
-    { name = "litellm", specifier = ">=1.63.11" },
-    { name = "markdownify", specifier = ">=1.1.0" },
-    { name = "numpy", specifier = ">=2.2.3" },
-    { name = "pandas", specifier = ">=2.2.3" },
-    { name = "pytest", marker = "extra == 'test'", specifier = ">=7.4.0" },
-    { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=4.1.0" },
-    { name = "python-dotenv", specifier = ">=1.0.1" },
-    { name = "readabilipy", specifier = ">=0.3.0" },
-    { name = "socksio", specifier = ">=1.0.0" },
-    { name = "sse-starlette", specifier = ">=1.6.5" },
-    { name = "uvicorn", specifier = ">=0.27.1" },
-    { name = "yfinance", specifier = ">=0.2.54" },
-]
-provides-extras = ["dev", "test"]
-
-[[package]]
 name = "langchain"
 version = "0.3.20"
 source = { registry = "https://pypi.org/simple" }
@@ -1326,6 +1264,68 @@ wheels = [
 langchain = [
     { name = "opentelemetry-instrumentation-langchain" },
 ]
+
+[[package]]
+name = "localmanus"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "browser-use" },
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "json-repair" },
+    { name = "langchain-community" },
+    { name = "langchain-deepseek" },
+    { name = "langchain-experimental" },
+    { name = "langchain-openai" },
+    { name = "langgraph" },
+    { name = "litellm" },
+    { name = "markdownify" },
+    { name = "numpy" },
+    { name = "pandas" },
+    { name = "python-dotenv" },
+    { name = "readabilipy" },
+    { name = "socksio" },
+    { name = "sse-starlette" },
+    { name = "uvicorn" },
+    { name = "yfinance" },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "black" },
+]
+test = [
+    { name = "pytest" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "black", marker = "extra == 'dev'", specifier = ">=24.2.0" },
+    { name = "browser-use", specifier = ">=0.1.0" },
+    { name = "fastapi", specifier = ">=0.110.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "json-repair", specifier = ">=0.7.0" },
+    { name = "langchain-community", specifier = ">=0.3.19" },
+    { name = "langchain-deepseek", specifier = ">=0.1.2" },
+    { name = "langchain-experimental", specifier = ">=0.3.4" },
+    { name = "langchain-openai", specifier = ">=0.3.8" },
+    { name = "langgraph", specifier = ">=0.3.5" },
+    { name = "litellm", specifier = ">=1.63.11" },
+    { name = "markdownify", specifier = ">=1.1.0" },
+    { name = "numpy", specifier = ">=2.2.3" },
+    { name = "pandas", specifier = ">=2.2.3" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=7.4.0" },
+    { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=4.1.0" },
+    { name = "python-dotenv", specifier = ">=1.0.1" },
+    { name = "readabilipy", specifier = ">=0.3.0" },
+    { name = "socksio", specifier = ">=1.0.0" },
+    { name = "sse-starlette", specifier = ">=1.6.5" },
+    { name = "uvicorn", specifier = ">=0.27.1" },
+    { name = "yfinance", specifier = ">=0.2.54" },
+]
+provides-extras = ["dev", "test"]
 
 [[package]]
 name = "lxml"

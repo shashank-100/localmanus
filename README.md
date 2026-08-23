@@ -296,9 +296,13 @@ Each agent's prompt is defined in a separate markdown file, making it easy to mo
 
 ## Web UI
 
-localmanus provides a default web UI.
+localmanus serves a built-in web UI from the same FastAPI process. Start the server and open:
 
-Please refer to the [localmanus/localmanus-web-ui](https://github.com/shashank-100/localmanus-web) project for more details.
+```text
+http://127.0.0.1:8000/
+```
+
+The UI streams agent messages, tool activity, and workflow state from `POST /api/chat/stream`. API documentation remains available at `/docs`.
 
 ## Development
 

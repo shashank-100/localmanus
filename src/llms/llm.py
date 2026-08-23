@@ -134,7 +134,7 @@ def get_llm_by_type(
                 api_version=AZURE_API_VERSION,
                 api_key=AZURE_API_KEY,
             )
-        elif "/" in BASIC_MODEL:
+        elif "/" in REASONING_MODEL:
             llm = create_litellm_model(
                 model=REASONING_MODEL,
                 base_url=REASONING_BASE_URL,

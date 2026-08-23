@@ -10,6 +10,8 @@ from typing import Dict, List, Any, Optional, Union
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 import asyncio
@@ -24,8 +26,8 @@ logger = logging.getLogger(__name__)
 
 # Create FastAPI app
 app = FastAPI(
-    title="localmanus API",
-    description="API for localmanus LangGraph-based agent workflow",
+    title="LocalManus API",
+    description="API for the LocalManus LangGraph-based agent workflow",
     version="0.1.0",
 )
 
@@ -159,3 +161,8 @@ async def get_browser_history_file(filename: str):
     except Exception as e:
         logger.error(f"Error retrieving browser history file: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# Serve the companion chat UI after API routes so /api/* remains authoritative.
+WEB_DIR = Path(__file__).resolve().parents[2] / "web"
+app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")
