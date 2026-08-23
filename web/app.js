@@ -37,6 +37,7 @@ function resizePrompt() {
 
 function addTextMessage(role, content = '') {
   shell.classList.remove('empty');
+  shell.classList.add('has-messages');
   const message = document.createElement('div');
   message.className = `message ${role}`;
   const bubble = document.createElement('div');
@@ -50,6 +51,7 @@ function addTextMessage(role, content = '') {
 
 function createWorkflow(input) {
   shell.classList.remove('empty');
+  shell.classList.add('has-messages');
   const card = document.createElement('section');
   card.className = 'workflow-card';
   card.innerHTML = '<aside class="flow-sidebar"><div class="flow-title">Flow</div><ol class="flow-steps"></ol></aside><main class="flow-detail"><div class="workflow-empty">The team is preparing the workflow...</div></main>';
