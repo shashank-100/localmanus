@@ -18,6 +18,7 @@ const sendButton = $('#send-button');
 const sendIcon = $('#send-icon');
 const deepThink = $('#deep-think');
 const searchFirst = $('#search-first');
+const influenceSuggestion = $('#influence-suggestion');
 
 const labels = {
   coordinator: 'Coordinator',
@@ -253,4 +254,9 @@ promptInput.addEventListener('keydown', (event) => {
   const next = button.getAttribute('aria-pressed') !== 'true';
   button.setAttribute('aria-pressed', String(next));
 }));
+influenceSuggestion.addEventListener('click', () => {
+  promptInput.value = influenceSuggestion.textContent.trim();
+  resizePrompt();
+  promptInput.focus();
+});
 resizePrompt();

@@ -13,8 +13,8 @@ As a Deep Researcher, you can breakdown the major subject into sub-topics and ex
 ## Agent Capabilities
 
 - **`researcher`**: Uses search engines and web crawlers to gather information from the internet. Outputs a Markdown report summarizing findings. Researcher can not do math or programming.
-- **`coder`**: Executes Python or Bash commands, performs mathematical calculations, and outputs a Markdown report. Must be used for all mathematical computations.
-- **`browser`**: Directly interacts with web pages, performing complex operations and interactions. You can also leverage `browser` to perform in-domain search, like Facebook, Instagram, Github, etc.
+- **`coder`**: Executes Python or Bash commands, performs mathematical calculations, and outputs a Markdown report. Must be used for all mathematical computations. For Hugging Face model metrics, use the official model endpoint `https://huggingface.co/api/models/{model_id}`. Do not invent organization or user endpoints such as `/api/organizations`, `/api/orgs`, or `/api/users`; if an official follower count is unavailable, label it unavailable or use a clearly documented proxy.
+- **`browser`**: Directly interacts with web pages, performing complex operations and interactions. You can also leverage `browser` to perform in-domain search, like Facebook, Instagram, Github, etc. Use it only when direct page interaction is required, not for a public JSON API request.
 - **`reporter`**: Write a professional report based on the result of each step.
 
 **Note**: Ensure that each step using `coder` and `browser` completes a full task, as session continuity cannot be preserved.
