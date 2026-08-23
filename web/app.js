@@ -52,7 +52,7 @@ function createWorkflow(input) {
   shell.classList.remove('empty');
   const card = document.createElement('section');
   card.className = 'workflow-card';
-  card.innerHTML = '<aside class="flow-sidebar"><div class="flow-title">Flow</div><ol class="flow-steps"></ol></aside><main class="flow-detail"><div class="workflow-empty">The team is preparing the workflow…</div></main>';
+  card.innerHTML = '<aside class="flow-sidebar"><div class="flow-title">Flow</div><ol class="flow-steps"></ol></aside><main class="flow-detail"><div class="workflow-empty">The team is preparing the workflow...</div></main>';
   history.appendChild(card);
   state.workflow = { card, input, steps: [], detail: card.querySelector('.flow-detail'), nav: card.querySelector('.flow-steps') };
   return state.workflow;
@@ -161,10 +161,10 @@ function renderWorkflow() {
   nav.querySelectorAll('.flow-step').forEach((item) => item.addEventListener('click', () => document.getElementById(item.dataset.stepId)?.scrollIntoView({ behavior: 'smooth', block: 'center' })));
   const visibleSteps = workflow.steps.filter((step) => step.agentName !== 'reporter');
   if (!visibleSteps.length) {
-    detail.innerHTML = '<div class="workflow-empty">The team is preparing the workflow…</div>';
+    detail.innerHTML = '<div class="workflow-empty">The team is preparing the workflow...</div>';
     return;
   }
-  detail.innerHTML = visibleSteps.map((step, index) => `<section class="workflow-step" id="${step.id}"><h3>📍 Step ${index + 1}: ${escapeHtml(labels[step.agentName] || step.agentName)}</h3>${step.tasks.filter((task) => task.type !== 'thinking' || task.text || task.reason).map(renderTask).join('')}</section>`).join('');
+  detail.innerHTML = visibleSteps.map((step, index) => `<section class="workflow-step" id="${step.id}"><h3>Step ${index + 1}: ${escapeHtml(labels[step.agentName] || step.agentName)}</h3>${step.tasks.filter((task) => task.type !== 'thinking' || task.text || task.reason).map(renderTask).join('')}</section>`).join('');
   detail.scrollTop = detail.scrollHeight;
 }
 
@@ -172,11 +172,11 @@ function renderTask(task) {
   if (task.type === 'tool') {
     const input = typeof task.input === 'string' ? task.input : JSON.stringify(task.input || {}, null, 2);
     const title = task.toolName === 'tavily_search' ? `Searching for "${task.input?.query || input}"` : task.toolName === 'browser' ? (task.input?.instruction || input) : task.toolName;
-    return `<div class="task tool-task"><div class="task-label"><span class="task-symbol">${task.toolName === 'tavily_search' ? '⌕' : task.toolName === 'browser' ? '◎' : '</>'}</span><span>${escapeHtml(title)}</span></div><pre class="tool-detail">${escapeHtml(input)}${task.output ? `\n\n${escapeHtml(String(task.output).slice(0, 1200))}` : ''}</pre></div>`;
+    return `<div class="task tool-task"><div class="task-label"><span class="task-symbol">${task.toolName === 'tavily_search' ? '?' : task.toolName === 'browser' ? '@' : '$'}</span><span>${escapeHtml(title)}</span></div><pre class="tool-detail">${escapeHtml(input)}${task.output ? `\n\n${escapeHtml(String(task.output).slice(0, 1200))}` : ''}</pre></div>`;
   }
   const text = task.text || '';
-  const reason = task.reason ? `<div class="task deep-reason"><strong>✦ Deep Thought</strong><p>${escapeHtml(task.reason)}</p></div>` : '';
-  return `<div class="task thinking">${reason}<div class="task-label"><span class="task-symbol">${task.pending ? '◌' : '·'}</span><span>${escapeHtml(text)}</span></div></div>`;
+  const reason = task.reason ? `<div class="task deep-reason"><strong>* Deep Thought</strong><p>${escapeHtml(task.reason)}</p></div>` : '';
+  return `<div class="task thinking">${reason}<div class="task-label"><span class="task-symbol">${task.pending ? '...' : '-'}</span><span>${escapeHtml(text)}</span></div></div>`;
 }
 
 function escapeHtml(value) {
@@ -207,7 +207,7 @@ async function runTask(query) {
   state.messages.push({ role: 'user', content: query });
   addTextMessage('user', query);
   sendButton.classList.add('running');
-  sendIcon.textContent = '■';
+  sendIcon.textContent = 'x';
   try {
     const response = await fetch('/api/chat/stream', {
       method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
@@ -228,7 +228,7 @@ async function runTask(query) {
   } finally {
     state.running = false;
     sendButton.classList.remove('running');
-    sendIcon.textContent = '↑';
+    sendIcon.textContent = '>';
   }
 }
 
