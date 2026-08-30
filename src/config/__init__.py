@@ -31,6 +31,13 @@ from .tools import TAVILY_MAX_RESULTS, BROWSER_HISTORY_DIR
 TEAM_MEMBERS = ["researcher", "coder", "browser", "reporter"]
 
 __all__ = [
+    # Azure Config
+    "AZURE_API_BASE",
+    "AZURE_API_KEY",
+    "AZURE_API_VERSION",
+    "REASONING_AZURE_DEPLOYMENT",
+    "BASIC_AZURE_DEPLOYMENT",
+    "VL_AZURE_DEPLOYMENT",
     # Reasoning LLM
     "REASONING_MODEL",
     "REASONING_BASE_URL",
