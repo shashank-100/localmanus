@@ -204,6 +204,12 @@ function summarizeToolOutput(output) {
   if (!text) return '';
   try {
     const parsed = JSON.parse(text);
+    // The browser agent records its session; show the replay, not the path.
+    if (parsed?.generated_gif_path) {
+      const file = String(parsed.generated_gif_path).split('/').pop();
+      const caption = parsed.result_content ? `<p>${escapeHtml(parsed.result_content)}</p>` : '';
+      return `${caption}<figure class="browser-replay"><img src="/api/browser_history/${encodeURIComponent(file)}" alt="Browser session replay" loading="lazy"><figcaption>Browser session replay</figcaption></figure>`;
+    }
     const results = Array.isArray(parsed) ? parsed : parsed?.results;
     if (Array.isArray(results)) {
       const sources = results

@@ -82,6 +82,9 @@ textarea::placeholder { color: #9ca3af; }
 .plan-steps p { margin: 2px 0 0; color: #6b7280; font-size: 13px; }
 .plan-agent { margin-left: 8px; padding: 1px 7px; border-radius: 10px; background: var(--primary-soft, #eef2ff); color: var(--primary, #4f46e5); font-size: 11px; }
 .plan-pending { color: #9ca3af; font-style: italic; }
+.browser-replay { margin: 10px 0 4px; }
+.browser-replay img { display: block; width: 100%; max-width: 620px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.browser-replay figcaption { margin-top: 6px; color: #9ca3af; font-size: 12px; }
 .tool-output { margin: 4px 0 0 22px; color: #6b7280; font-size: 13px; }
 .tool-output ul { margin: 4px 0; padding-left: 18px; }
 .model-badge { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; padding: 0 10px; height: 32px; color: #9ca3af; font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; cursor: default; }

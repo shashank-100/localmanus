@@ -152,11 +152,19 @@ async def get_browser_history_file(filename: str):
         The GIF file
     """
     try:
-        file_path = os.path.join(BROWSER_HISTORY_DIR, filename)
-        if not os.path.exists(file_path) or not filename.endswith(".gif"):
+        # Resolve under the history directory so "../" cannot escape it.
+        history_dir = Path(BROWSER_HISTORY_DIR).resolve()
+        file_path = (history_dir / filename).resolve()
+        if (
+            not filename.endswith(".gif")
+            or history_dir not in file_path.parents
+            or not file_path.is_file()
+        ):
             raise HTTPException(status_code=404, detail="File not found")
 
-        return FileResponse(file_path, media_type="image/gif", filename=filename)
+        return FileResponse(
+            file_path, media_type="image/gif", filename=file_path.name
+        )
     except HTTPException:
         raise
     except Exception as e:
