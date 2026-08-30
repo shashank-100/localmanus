@@ -13,7 +13,7 @@ def repair_json_output(content: str) -> str:
         content (str): String content that may contain JSON
 
     Returns:
-        str: The repaired JSON string, or the original content if not JSON
+        str: The repaired JSON string, or the original content if it is not JSON
     """
     content = content.strip()
     if content.startswith(("{", "[")) or "```json" in content:
