@@ -118,8 +118,8 @@ Follow the steps below to set up a virtual environment and install the necessary
 
 ```bash
 # Step 1: Create and activate a virtual environment through uv
-uv python install 3.12
-uv venv --python 3.12
+uv python install 3.13
+uv venv --python 3.13
 
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
