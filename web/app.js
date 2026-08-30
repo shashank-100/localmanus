@@ -43,7 +43,9 @@ function addTextMessage(role, content = '') {
   message.className = `message ${role}`;
   const bubble = document.createElement('div');
   bubble.className = 'message-bubble';
-  bubble.textContent = content;
+  // Agent output is Markdown; user input stays literal text.
+  if (role === 'assistant' && content) bubble.innerHTML = renderMarkdown(content);
+  else bubble.textContent = content;
   message.appendChild(bubble);
   history.appendChild(message);
   history.scrollTop = history.scrollHeight;
@@ -85,14 +87,38 @@ function eventText(data) {
   return '';
 }
 
+// Swap the send glyph between an arrow (idle) and a stop square (running).
+const SEND_ARROW = 'M8 13V3.5M8 3.5L4 7.5M8 3.5l4 4';
+const SEND_STOP = 'M5 5h6v6H5z';
+function setSendIcon(running) {
+  const path = sendIcon.querySelector('path');
+  path.setAttribute('d', running ? SEND_STOP : SEND_ARROW);
+  path.setAttribute('fill', running ? 'currentColor' : 'none');
+  sendButton.title = running ? 'Stop' : 'Send message';
+  sendButton.setAttribute('aria-label', sendButton.title);
+}
+
+function showFinalReport(messages) {
+  if (!messages || state.reportBubble) return;
+  // The graph serializes every agent message with role "user" and no name, so
+  // neither field identifies the reporter. Its report is the last message in
+  // the finished workflow, which is what the user should see.
+  const reversed = [...messages].reverse();
+  const report = reversed.find((message) => message.content);
+  if (report) state.reportBubble = addTextMessage('assistant', report.content);
+}
+
 function handleEvent(type, data) {
   switch (type) {
     case 'start_of_workflow':
       createWorkflow(data.input?.[0]?.content || '');
       break;
     case 'start_of_agent':
+      // The coordinator's bubble is created lazily when text actually arrives,
+      // so a silent handoff to the planner leaves no empty bubble behind.
       if (!state.workflow && data.agent_name === 'coordinator') {
-        state.agentBubble = addTextMessage('assistant');
+        state.agentBubble = null;
+        state.coordinatorSpeaking = true;
       }
       ensureStep(data.agent_name, data.agent_id);
       break;
@@ -106,8 +132,10 @@ function handleEvent(type, data) {
       break;
     case 'message': {
       const text = eventText(data);
-      if (!state.workflow && state.agentBubble && data.delta?.content) {
-        state.agentBubble.textContent += text;
+      if (!state.workflow && state.coordinatorSpeaking && data.delta?.content) {
+        if (!state.agentBubble) state.agentBubble = addTextMessage('assistant');
+        state.agentBubble.dataset.raw = (state.agentBubble.dataset.raw || '') + text;
+        state.agentBubble.textContent = state.agentBubble.dataset.raw;
         return;
       }
       if (!state.currentTask) ensureTask('thinking');
@@ -117,6 +145,10 @@ function handleEvent(type, data) {
       break;
     }
     case 'end_of_llm':
+      // The coordinator bubble streamed as plain text; format it once complete.
+      if (state.agentBubble?.dataset.raw) {
+        state.agentBubble.innerHTML = renderMarkdown(state.agentBubble.dataset.raw);
+      }
       if (state.currentTask) state.currentTask.pending = false;
       renderWorkflow();
       break;
@@ -141,16 +173,8 @@ function handleEvent(type, data) {
       break;
     }
     case 'final_session_state':
-      if (data.messages) {
-        const last = [...data.messages].reverse().find((message) => message.role !== 'user' && message.content);
-        if (last && !state.reportBubble) state.reportBubble = addTextMessage('assistant', last.content);
-      }
-      break;
     case 'end_of_workflow':
-      if (data.messages) {
-        const last = [...data.messages].reverse().find((message) => message.role !== 'user' && message.content);
-        if (last && !state.reportBubble) state.reportBubble = addTextMessage('assistant', last.content);
-      }
+      showFinalReport(data.messages);
       break;
   }
 }
@@ -160,6 +184,7 @@ function renderWorkflow() {
   if (!workflow) return;
   const nav = workflow.nav;
   const detail = workflow.detail;
+  const wasAtBottom = detail.scrollHeight - detail.scrollTop - detail.clientHeight < 40;
   nav.innerHTML = workflow.steps.filter((step) => step.agentName !== 'reporter').map((step) => `<li class="flow-step ${step === state.currentStep ? 'active' : ''}" data-step-id="${step.id}"><span class="flow-dot"></span><span>${escapeHtml(labels[step.agentName] || step.agentName)}</span></li>`).join('');
   nav.querySelectorAll('.flow-step').forEach((item) => item.addEventListener('click', () => document.getElementById(item.dataset.stepId)?.scrollIntoView({ behavior: 'smooth', block: 'center' })));
   const visibleSteps = workflow.steps.filter((step) => step.agentName !== 'reporter');
@@ -168,18 +193,106 @@ function renderWorkflow() {
     return;
   }
   detail.innerHTML = visibleSteps.map((step, index) => `<section class="workflow-step" id="${step.id}"><h3>Step ${index + 1}: ${escapeHtml(labels[step.agentName] || step.agentName)}</h3>${step.tasks.filter((task) => task.type !== 'thinking' || task.text || task.reason).map(renderTask).join('')}</section>`).join('');
-  detail.scrollTop = detail.scrollHeight;
+  // Only follow the stream while the user is already at the bottom, so
+  // scrolling back to an earlier step is not undone by the next update.
+  if (wasAtBottom) detail.scrollTop = detail.scrollHeight;
+}
+
+// Turn a tool result into a short human-readable line instead of raw JSON.
+function summarizeToolOutput(output) {
+  const text = String(output || '');
+  if (!text) return '';
+  try {
+    const parsed = JSON.parse(text);
+    const results = Array.isArray(parsed) ? parsed : parsed?.results;
+    if (Array.isArray(results)) {
+      const sources = results
+        .map((item) => item?.title || item?.url)
+        .filter(Boolean)
+        .slice(0, 5);
+      if (sources.length) {
+        return `<ul>${sources.map((s) => `<li>${escapeHtml(s)}</li>`).join('')}</ul>`;
+      }
+    }
+    if (typeof parsed?.content === 'string') return renderMarkdown(parsed.content.slice(0, 800));
+  } catch { /* Not JSON; fall through to plain text. */ }
+  return renderMarkdown(text.slice(0, 800));
 }
 
 function renderTask(task) {
   if (task.type === 'tool') {
-    const input = typeof task.input === 'string' ? task.input : JSON.stringify(task.input || {}, null, 2);
-    const title = task.toolName === 'tavily_search' ? `Searching for "${task.input?.query || input}"` : task.toolName === 'browser' ? (task.input?.instruction || input) : task.toolName;
-    return `<div class="task tool-task"><div class="task-label"><span class="task-symbol">${task.toolName === 'tavily_search' ? '?' : task.toolName === 'browser' ? '@' : '$'}</span><span>${escapeHtml(title)}</span></div><pre class="tool-detail">${escapeHtml(input)}${task.output ? `\n\n${escapeHtml(String(task.output).slice(0, 1200))}` : ''}</pre></div>`;
+    const query = task.input?.query || task.input?.url || task.input?.instruction;
+    const label =
+      task.toolName === 'tavily_search' ? `Searched for "${query || ''}"`
+      : task.toolName === 'crawl_tool' ? `Read ${query || 'a page'}`
+      : task.toolName === 'browser' ? (query || 'Browsing')
+      : task.toolName;
+    const symbol = task.toolName === 'tavily_search' ? '?' : task.toolName === 'browser' ? '@' : '$';
+    const output = task.output ? `<div class="tool-output">${summarizeToolOutput(task.output)}</div>` : '';
+    return `<div class="task tool-task"><div class="task-label"><span class="task-symbol">${symbol}</span><span>${escapeHtml(label)}</span></div>${output}</div>`;
   }
-  const text = task.text || '';
-  const reason = task.reason ? `<div class="task deep-reason"><strong>* Deep Thought</strong><p>${escapeHtml(task.reason)}</p></div>` : '';
-  return `<div class="task thinking">${reason}<div class="task-label"><span class="task-symbol">${task.pending ? '...' : '-'}</span><span>${escapeHtml(text)}</span></div></div>`;
+  const reason = task.reason ? `<div class="task deep-reason"><strong>* Deep Thought</strong>${renderMarkdown(task.reason)}</div>` : '';
+  return `<div class="task thinking">${reason}<div class="task-body">${renderPlanOrText(task.text || '')}</div></div>`;
+}
+
+// The planner emits a JSON plan; render it as a readable outline rather than
+// dumping the raw object into the step body.
+function renderPlanOrText(text) {
+  const trimmed = text.trim();
+  if (trimmed.startsWith('{') && trimmed.includes('"steps"')) {
+    try {
+      const plan = JSON.parse(trimmed);
+      if (Array.isArray(plan.steps)) {
+        const items = plan.steps
+          .map((step) => `<li><strong>${escapeHtml(step.title || step.agent_name || '')}</strong>`
+            + `<span class="plan-agent">${escapeHtml(step.agent_name || '')}</span>`
+            + `${step.description ? `<p>${escapeHtml(step.description)}</p>` : ''}</li>`)
+          .join('');
+        return `${plan.thought ? `<p>${escapeHtml(plan.thought)}</p>` : ''}`
+          + `${plan.title ? `<h4>${escapeHtml(plan.title)}</h4>` : ''}`
+          + `<ol class="plan-steps">${items}</ol>`;
+      }
+    } catch { /* Plan still streaming in; show it as text below. */ }
+    return '<p class="plan-pending">Drafting plan…</p>';
+  }
+  return renderMarkdown(text);
+}
+
+// Minimal Markdown renderer for agent prose: bold, italics, inline code,
+// headings, and lists. Input is escaped first, so this never injects HTML.
+function renderMarkdown(value) {
+  const lines = escapeHtml(String(value || '')).split('\n');
+  const html = [];
+  let inList = false;
+  const inline = (text) =>
+    text
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/(^|\W)\*([^*\n]+)\*/g, '$1<em>$2</em>');
+  let fence = null;
+  for (const line of lines) {
+    const fenceMark = line.match(/^\s*```(\w*)\s*$/);
+    if (fenceMark) {
+      if (fence === null) { fence = []; } // opening
+      else { html.push(`<pre class="code-block">${fence.join('\n')}</pre>`); fence = null; }
+      continue;
+    }
+    if (fence !== null) { fence.push(line); continue; }
+    const item = line.match(/^\s*[-*]\s+(.*)$/);
+    if (item) {
+      if (!inList) { html.push('<ul>'); inList = true; }
+      html.push(`<li>${inline(item[1])}</li>`);
+      continue;
+    }
+    if (inList) { html.push('</ul>'); inList = false; }
+    const heading = line.match(/^(#{1,4})\s+(.*)$/);
+    if (heading) html.push(`<h4>${inline(heading[2])}</h4>`);
+    else if (line.trim()) html.push(`<p>${inline(line)}</p>`);
+  }
+  if (inList) html.push('</ul>');
+  // A fence still open means the block is mid-stream; render what we have.
+  if (fence?.length) html.push(`<pre class="code-block">${fence.join('\n')}</pre>`);
+  return html.join('');
 }
 
 function escapeHtml(value) {
@@ -210,7 +323,7 @@ async function runTask(query) {
   state.messages.push({ role: 'user', content: query });
   addTextMessage('user', query);
   sendButton.classList.add('running');
-  sendIcon.textContent = 'x';
+  setSendIcon(true);
   try {
     const response = await fetch('/api/chat/stream', {
       method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
@@ -231,7 +344,7 @@ async function runTask(query) {
   } finally {
     state.running = false;
     sendButton.classList.remove('running');
-    sendIcon.textContent = '>';
+    setSendIcon(false);
   }
 }
 
@@ -259,4 +372,24 @@ influenceSuggestion.addEventListener('click', () => {
   resizePrompt();
   promptInput.focus();
 });
+
+// Show which model is serving requests, reported by the server.
+const modelBadge = $('#model-badge');
+const modelName = $('#model-name');
+
+fetch('/api/models')
+  .then((response) => {
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  })
+  .then((models) => {
+    modelName.textContent = models.basic;
+    modelBadge.title = `Basic: ${models.basic}\nReasoning: ${models.reasoning}`;
+  })
+  .catch(() => {
+    modelName.textContent = 'model unavailable';
+    modelBadge.classList.add('model-error');
+    modelBadge.title = 'Could not reach /api/models';
+  });
+
 resizePrompt();

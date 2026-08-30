@@ -99,12 +99,29 @@ def supervisor_node(state: State) -> Command[Literal[*TEAM_MEMBERS, "__end__"]]:
     for message in messages:
         if isinstance(message, BaseMessage) and message.name in TEAM_MEMBERS:
             message.content = RESPONSE_FORMAT.format(message.name, message.content)
-    response = (
-        get_llm_by_type(AGENT_LLM_MAP["supervisor"])
-        .with_structured_output(schema=Router, method="json_mode")
-        .invoke(messages)
-    )
-    goto = response["next"]
+    supervisor_llm = get_llm_by_type(AGENT_LLM_MAP["supervisor"])
+    try:
+        response = supervisor_llm.with_structured_output(
+            schema=Router, method="json_mode"
+        ).invoke(messages)
+        goto = response["next"]
+    except ValueError:
+        # ChatLiteLLM rejects `method`, and its tool-calling fallback sends
+        # tool_choice="any", which OpenAI-compatible endpoints reject. Ask for
+        # plain JSON instead and repair it, as planner_node does.
+        options = ", ".join([*TEAM_MEMBERS, "FINISH"])
+        routed = deepcopy(messages)
+        routed.append(
+            HumanMessage(
+                content=(
+                    "Respond with only a JSON object of the form "
+                    f'{{"next": "<one of: {options}>"}}. No other text.'
+                )
+            )
+        )
+        raw = supervisor_llm.invoke(routed).content
+        response = json_repair.loads(repair_json_output(raw))
+        goto = response.get("next", "FINISH")
     logger.debug(f"Current state messages: {state['messages']}")
     logger.debug(f"Supervisor response: {response}")
 

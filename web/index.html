@@ -30,10 +30,13 @@
           <textarea id="prompt" rows="1" placeholder="What can I do for you?" aria-label="Message"></textarea>
           <div class="composer-toolbar">
             <div class="composer-options">
-              <button class="option-button" id="deep-think" type="button" aria-pressed="false"><span class="option-icon">*</span> Deep Think</button>
-              <button class="option-button" id="search-first" type="button" aria-pressed="false"><span class="option-icon">@</span> Search</button>
+              <button class="option-button" id="deep-think" type="button" aria-pressed="false"><svg class="option-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5l1.6 3.9 3.9 1.6-3.9 1.6L8 12.5 6.4 8.6 2.5 7l3.9-1.6z"/></svg>Deep Think</button>
+              <button class="option-button" id="search-first" type="button" aria-pressed="false"><svg class="option-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10.5 10.5L14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Search</button>
+              <span class="model-badge" id="model-badge" title="Active model">
+                <span class="model-dot" aria-hidden="true"></span><span id="model-name">…</span>
+              </span>
             </div>
-            <button class="send-button" id="send-button" type="submit" title="Send message" aria-label="Send message"><span id="send-icon">&gt;</span></button>
+            <button class="send-button" id="send-button" type="submit" title="Send message" aria-label="Send message"><svg id="send-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3.5M8 3.5L4 7.5M8 3.5l4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           </div>
         </form>
         <div class="composer-underlay"></div>

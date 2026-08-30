@@ -86,6 +86,23 @@ def create_azure_llm(
     )
 
 
+class _ChatLiteLLM(ChatLiteLLM):
+    """
+    ChatLiteLLM that always sends an OpenAI-compatible `tool_choice`.
+
+    LangChain only rewrites `tool_choice="any"` to `"required"` when the model
+    name appears in its hardcoded `_OPENAI_MODELS` list. Newer model names are
+    absent from that list, so `"any"` reaches the endpoint and OpenAI-compatible
+    providers reject it. Normalizing here fixes every caller, including
+    browser_use, which requests structured output we do not control.
+    """
+
+    def bind_tools(self, tools, *, tool_choice=None, **kwargs):
+        if tool_choice == "any" or isinstance(tool_choice, bool):
+            tool_choice = "required"
+        return super().bind_tools(tools, tool_choice=tool_choice, **kwargs)
+
+
 def create_litellm_model(
     model: str,
     base_url: Optional[str] = None,
@@ -105,7 +122,7 @@ def create_litellm_model(
     if api_key:  # This will handle None or empty string
         llm_kwargs["api_key"] = api_key
 
-    return ChatLiteLLM(**llm_kwargs)
+    return _ChatLiteLLM(**llm_kwargs)
 
 
 # Cache for LLM instances

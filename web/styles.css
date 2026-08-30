@@ -19,7 +19,7 @@ button { cursor: pointer; }
 .app-shell { min-height: 100vh; width: 100%; display: flex; flex-direction: column; align-items: center; }
 .app-header { position: fixed; z-index: 10; top: 0; left: 0; right: 0; height: 64px; display: flex; align-items: center; padding: 0 16px; background: rgba(248,247,245,.82); backdrop-filter: blur(10px); }
 .wordmark { color: #6b7280; font-family: Georgia, 'Times New Roman', serif; font-size: 18px; font-weight: 300; text-decoration: none; }
-.main-content { width: var(--page); max-width: calc(100% - 32px); padding: 80px 0 220px; margin: 0 auto; }
+.main-content { width: var(--page); max-width: calc(100% - 32px); padding: 80px 0 260px; margin: 0 auto; }
 .empty-intro { position: fixed; z-index: 1; top: 28%; left: 50%; width: min(640px, calc(100% - 32px)); transform: translate(-50%, -50%); text-align: center; transition: opacity .35s, transform .35s; }
 .empty-intro h1 { margin: 0 0 8px; color: #374151; font-size: 30px; line-height: 1.2; font-weight: 500; letter-spacing: 0; }
 .empty-intro p { margin: 0; padding: 0 16px; color: #9ca3af; font-size: 18px; line-height: 1.55; }
@@ -34,8 +34,11 @@ button { cursor: pointer; }
 .message.user { justify-content: flex-end; }
 .message-bubble { position: relative; width: fit-content; max-width: min(560px, 100%); min-width: 0; margin-bottom: 32px; padding: 12px 16px; border: 1px solid rgba(229,231,235,.7); border-radius: 16px; background: var(--white); box-shadow: 0 1px 2px rgba(0,0,0,.04); font-size: 15px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
 .message.user .message-bubble { border-color: var(--primary); border-bottom-right-radius: 3px; background: var(--primary); color: var(--white); }
-.message.assistant .message-bubble { border-bottom-left-radius: 3px; }
-.workflow-card { display: flex; width: 100%; min-width: 0; max-width: var(--page); height: 400px; margin-bottom: 32px; overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: var(--white); animation: appear .28s ease both; }
+/* The final report reads as page content, not a chat bubble: no box, no card. */
+.message.assistant .message-bubble { width: 100%; max-width: 100%; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+/* Rendered Markdown supplies its own block spacing; pre-wrap would double it. */
+.message.assistant .message-bubble:has(p, ul, ol, h4) { white-space: normal; }
+.workflow-card { display: flex; width: 100%; min-width: 0; max-width: var(--page); height: min(560px, 65vh); margin-bottom: 32px; overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: var(--white); animation: appear .28s ease both; }
 .flow-sidebar { width: 220px; flex: 0 0 220px; border-right: 1px solid var(--line); background: rgba(0,0,0,.02); }
 .flow-title { padding: 16px; font-size: 15px; font-weight: 500; }
 .flow-steps { display: flex; flex-direction: column; gap: 3px; margin: 0; padding: 8px 16px; list-style: none; }
@@ -63,7 +66,27 @@ textarea::placeholder { color: #9ca3af; }
 .option-button { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 14px; border: 1px solid var(--line); border-radius: 18px; color: #6b7280; background: var(--white); font-size: 13px; transition: .2s; }
 .option-button:hover { color: #374151; background: var(--button-hover); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
 .option-button[aria-pressed="true"] { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
-.option-icon { font-size: 16px; line-height: 1; }
+.option-icon { width: 14px; height: 14px; flex: 0 0 auto; fill: currentColor; }
+#send-icon { width: 18px; height: 18px; display: block; }
+.task-body > :first-child, .message-bubble > :first-child { margin-top: 0; }
+.task-body > :last-child, .message-bubble > :last-child { margin-bottom: 0; }
+.task-body p, .message-bubble p { margin: 6px 0; line-height: 1.55; }
+.task-body h4, .message-bubble h4 { margin: 12px 0 6px; font-size: 14px; font-weight: 600; }
+.task-body ul, .task-body ol, .message-bubble ul, .message-bubble ol { margin: 6px 0; padding-left: 20px; }
+.task-body li, .message-bubble li { margin: 3px 0; line-height: 1.5; }
+.task-body code, .message-bubble code { padding: 1px 5px; border-radius: 4px; background: rgba(0,0,0,.06); font-size: 12px; }
+.code-block { margin: 8px 0; padding: 10px 12px; border-radius: 8px; background: rgba(0,0,0,.05); font-size: 12.5px; line-height: 1.5; white-space: pre-wrap; overflow-x: auto; }
+.message.assistant .message-bubble h4 { margin: 18px 0 6px; font-size: 15px; }
+.plan-steps { padding-left: 20px; }
+.plan-steps li { margin: 8px 0; }
+.plan-steps p { margin: 2px 0 0; color: #6b7280; font-size: 13px; }
+.plan-agent { margin-left: 8px; padding: 1px 7px; border-radius: 10px; background: var(--primary-soft, #eef2ff); color: var(--primary, #4f46e5); font-size: 11px; }
+.plan-pending { color: #9ca3af; font-style: italic; }
+.tool-output { margin: 4px 0 0 22px; color: #6b7280; font-size: 13px; }
+.tool-output ul { margin: 4px 0; padding-left: 18px; }
+.model-badge { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; padding: 0 10px; height: 32px; color: #9ca3af; font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; cursor: default; }
+.model-dot { width: 6px; height: 6px; border-radius: 50%; background: #10b981; flex: 0 0 auto; }
+.model-badge.model-error .model-dot { background: #ef4444; }
 .send-button { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; color: #4b5563; background: var(--button); font-size: 22px; line-height: 1; transition: .2s; }
 .send-button:hover { background: var(--button-hover); box-shadow: 0 2px 5px rgba(0,0,0,.1); }
 .send-button.running { background: #fee2e2; color: #ef4444; }

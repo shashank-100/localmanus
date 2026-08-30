@@ -15,3 +15,7 @@ agent_history.gif
 .env
 
 .idea/
+.DS_Store
+
+# Browser agent session recordings
+static/browser_history/

@@ -9,7 +9,7 @@ from typing import Dict, List, Any, Optional, Union
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from pydantic import BaseModel, Field
@@ -19,6 +19,7 @@ from typing import AsyncGenerator, Dict, List, Any
 
 from src.graph import build_graph
 from src.config import TEAM_MEMBERS, BROWSER_HISTORY_DIR
+from src.config.env import BASIC_MODEL, REASONING_MODEL
 from src.service.workflow_service import run_agent_workflow
 
 # Configure logging
@@ -163,6 +164,42 @@ async def get_browser_history_file(filename: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/api/models")
+async def get_models():
+    """
+    Report the configured model names so the UI can display them.
+
+    Only names are exposed here; API keys and base URLs stay server-side.
+    """
+    # Strip any LiteLLM "provider/" prefix, which is a routing detail.
+    def display_name(model: str) -> str:
+        return model.split("/", 1)[-1] if model else "unset"
+
+    return {
+        "basic": display_name(BASIC_MODEL),
+        "reasoning": display_name(REASONING_MODEL),
+    }
+
+
 # Serve the companion chat UI after API routes so /api/* remains authoritative.
 WEB_DIR = Path(__file__).resolve().parents[2] / "web"
+
+
+@app.get("/")
+async def index():
+    """
+    Serve index.html with cache-busted asset URLs.
+
+    StaticFiles lets browsers cache app.js and styles.css, so after a deploy a
+    returning visitor can run stale JavaScript against the new API. Stamping the
+    URLs with each file's mtime gives changed assets a fresh URL while unchanged
+    ones stay cacheable.
+    """
+    html = (WEB_DIR / "index.html").read_text()
+    for asset in ("app.js", "styles.css"):
+        version = int((WEB_DIR / asset).stat().st_mtime)
+        html = html.replace(f"/{asset}", f"/{asset}?v={version}")
+    return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
+
+
 app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")
