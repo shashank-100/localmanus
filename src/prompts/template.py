@@ -3,7 +3,6 @@ import re
 from datetime import datetime
 
 from langchain_core.prompts import PromptTemplate
-from langgraph.prebuilt.chat_agent_executor import AgentState
 
 
 def get_prompt_template(prompt_name: str) -> str:
@@ -15,7 +14,7 @@ def get_prompt_template(prompt_name: str) -> str:
     return template
 
 
-def apply_prompt_template(prompt_name: str, state: AgentState) -> list:
+def apply_prompt_template(prompt_name: str, state) -> list:
     system_prompt = PromptTemplate(
         input_variables=["CURRENT_TIME"],
         template=get_prompt_template(prompt_name),

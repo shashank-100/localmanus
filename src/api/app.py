@@ -2,23 +2,20 @@
 FastAPI application for localmanus.
 """
 
+import asyncio
 import json
 import logging
-import os
-from typing import Dict, List, Any, Optional, Union
+from pathlib import Path
+from typing import List, Optional, Union
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from pathlib import Path
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
-import asyncio
-from typing import AsyncGenerator, Dict, List, Any
 
-from src.graph import build_graph
-from src.config import TEAM_MEMBERS, BROWSER_HISTORY_DIR
+from src.config import BROWSER_HISTORY_DIR
 from src.config.env import BASIC_MODEL, REASONING_MODEL
 from src.service.workflow_service import run_agent_workflow
 
@@ -40,9 +37,6 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
-
-# Create the graph
-graph = build_graph()
 
 
 class ContentItem(BaseModel):
