@@ -2,10 +2,11 @@ import asyncio
 import json
 from pydantic import BaseModel, Field
 from typing import Optional, ClassVar, Type
-from langchain.tools import BaseTool
-from browser_use import AgentHistoryList, Browser, BrowserConfig
+from langchain_core.tools import BaseTool
+from browser_use import AgentHistoryList, BrowserProfile
 from browser_use import Agent as BrowserAgent
-from src.llms.llm import vl_llm
+from browser_use.llm.litellm.chat import ChatLiteLLM as BrowserChatLiteLLM
+from src.config import VL_MODEL, VL_BASE_URL, VL_API_KEY
 from src.tools.decorators import create_logged_tool
 from src.config import (
     CHROME_INSTANCE_PATH,
@@ -17,21 +18,26 @@ from src.config import (
 )
 import uuid
 
-browser_config = BrowserConfig(
-    headless=CHROME_HEADLESS,
-    chrome_instance_path=CHROME_INSTANCE_PATH,
-)
+profile_kwargs = {"headless": CHROME_HEADLESS}
+if CHROME_INSTANCE_PATH:
+    profile_kwargs["executable_path"] = CHROME_INSTANCE_PATH
 if CHROME_PROXY_SERVER:
-    proxy_config = {
-        "server": CHROME_PROXY_SERVER,
-    }
+    proxy_config = {"server": CHROME_PROXY_SERVER}
     if CHROME_PROXY_USERNAME:
         proxy_config["username"] = CHROME_PROXY_USERNAME
     if CHROME_PROXY_PASSWORD:
         proxy_config["password"] = CHROME_PROXY_PASSWORD
-    browser_config.proxy = proxy_config
+    profile_kwargs["proxy"] = proxy_config
 
-expected_browser = Browser(config=browser_config)
+browser_profile = BrowserProfile(**profile_kwargs)
+
+# browser-use 0.13 dropped LangChain support and requires its own LLM client,
+# so the browser agent builds one from the same vision-model settings.
+browser_llm = BrowserChatLiteLLM(
+    model=VL_MODEL,
+    api_key=VL_API_KEY,
+    api_base=VL_BASE_URL,
+)
 
 
 class BrowserUseInput(BaseModel):
@@ -62,8 +68,8 @@ class BrowserTool(BaseTool):
         """Run the browser task synchronously."""
         self._agent = BrowserAgent(
             task=instruction,  # Will be set per request
-            llm=vl_llm,
-            browser=expected_browser,
+            llm=browser_llm,
+            browser_profile=browser_profile,
             generate_gif=generated_gif_path,
         )
 
@@ -93,8 +99,8 @@ class BrowserTool(BaseTool):
         generated_gif_path = f"{BROWSER_HISTORY_DIR}/{uuid.uuid4()}.gif"
         self._agent = BrowserAgent(
             task=instruction,
-            llm=vl_llm,
-            browser=expected_browser,
+            llm=browser_llm,
+            browser_profile=browser_profile,
             generate_gif=generated_gif_path,  # Will be set per request
         )
         try:

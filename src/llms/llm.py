@@ -1,6 +1,6 @@
 from langchain_openai import ChatOpenAI, AzureChatOpenAI
 from langchain_deepseek import ChatDeepSeek
-from langchain_community.chat_models import ChatLiteLLM
+from langchain_litellm import ChatLiteLLM
 from typing import Optional
 
 from src.config import (
@@ -114,7 +114,14 @@ def create_litellm_model(
     Support various different model's through LiteLLM's capabilities.
     """
 
-    llm_kwargs = {"model": model, "temperature": temperature, **kwargs}
+    # langchain-litellm does not stream by default, unlike the langchain-community
+    # class it replaced. Without this the UI receives no token deltas.
+    llm_kwargs = {
+        "model": model,
+        "temperature": temperature,
+        "streaming": True,
+        **kwargs,
+    }
 
     if base_url:  # This will handle None or empty string
         llm_kwargs["api_base"] = base_url
