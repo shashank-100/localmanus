@@ -1,322 +1,286 @@
 # localmanus
 
-localmanus is a community-driven AI automation framework that builds upon the incredible work of the open source community. Our goal is to combine language models with specialized tools for tasks like web search, crawling, and Python code execution, while giving back to the community that made this possible.
+A multi-agent research assistant. You ask a question; a team of agents plans the
+work, searches the web, runs code, drives a browser when needed, and writes the
+answer. Built on [LangGraph](https://github.com/langchain-ai/langgraph) and
+FastAPI, with a dependency-free web UI.
 
-## Demo Video
+## Demo
 
-> **Task**: Calculate the influence index of DeepSeek R1 on HuggingFace. This index can be designed by considering a weighted sum of factors such as followers, downloads, and likes.
+> **Task**: Calculate the influence index of DeepSeek R1 on HuggingFace, as a
+> weighted sum of followers, downloads, and likes.
 
 [![Demo](./assets/demo.gif)](./assets/demo.mp4)
 
 - [View on YouTube](https://youtu.be/sZCHqrQBUGk)
 - [Download Video](https://github.com/shashank-100/localmanus/blob/main/assets/demo.mp4)
 
-## Table of Contents
+## Contents
 
 - [Quick Start](#quick-start)
-- [Architecture](#architecture)
-- [Features](#features)
-- [Why localmanus?](#why-localmanus)
-- [Setup](#setup)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Configuration](#configuration)
+- [How It Works](#how-it-works)
+- [Configuration](#configuration)
 - [Usage](#usage)
-## Web UI
+- [Project Layout](#project-layout)
+- [Deployment](#deployment)
 - [Development](#development)
 
 ## Quick Start
 
+Requires [uv](https://github.com/astral-sh/uv). It installs Python for you.
+
 ```bash
-# Clone the repository
 git clone https://github.com/shashank-100/localmanus.git
 cd localmanus
 
-# Install dependencies, uv will take care of the python interpreter and venv creation
-uv sync
+uv sync                              # installs Python 3.13 and dependencies
+uv run python -m playwright install chromium   # only needed for browser tasks
 
-# Playwright install to use Chromium for browser-use by default
-uv run playwright install
+cp .env.example .env                 # Windows: copy .env.example .env
+# edit .env and add your API keys
 
-# Configure environment
-# Windows: copy .env.example .env 
-cp .env.example .env
-# Edit .env with your API keys
-
-# Run the project
-uv run main.py
+make serve                           # then open http://localhost:8000
 ```
 
-## Architecture
+## How It Works
 
-localmanus implements a hierarchical multi-agent system where a supervisor coordinates specialized agents to accomplish complex tasks:
+![localmanus architecture](./assets/architecture.png)
 
-![localmanus Architecture](./assets/architecture.png)
+Seven agents pass work between them. A **supervisor** sits at the centre and
+decides who runs next after every step.
 
-The system consists of the following agents working together:
+```
+START → coordinator ──→ END              small talk stops here
+             ↓
+          planner                        writes a step-by-step plan
+             ↓
+    ┌─── supervisor ───→ END             decides the next worker, or finishes
+    │      ↑    ↓
+    │   researcher   searches and reads pages
+    │   coder        runs Python and shell commands
+    │   browser      drives a real Chromium browser
+    └── reporter     writes the final answer
+```
 
-1. **Coordinator** - The entry point that handles initial interactions and routes tasks
-2. **Planner** - Analyzes tasks and creates execution strategies
-3. **Supervisor** - Oversees and manages the execution of other agents
-4. **Researcher** - Gathers and analyzes information
-5. **Coder** - Handles code generation and modifications
-6. **Browser** - Performs web browsing and information retrieval
-7. **Reporter** - Generates reports and summaries of the workflow results
+| Agent | Role | Tools |
+| --- | --- | --- |
+| `coordinator` | Decides whether a message is a real task or small talk | — |
+| `planner` | Breaks the task into steps and assigns each to an agent | — |
+| `supervisor` | Dispatches one worker at a time, then finishes | — |
+| `researcher` | Web search and page reading | Tavily, crawler |
+| `coder` | Calculations and scripts | Python REPL, bash |
+| `browser` | Page interaction that needs a real browser | browser-use |
+| `reporter` | Writes the answer the user sees | — |
 
-## Features
+Workers always return to the supervisor rather than calling each other, so the
+route through the graph is decided at runtime rather than hard-coded.
 
-### Core Capabilities
-
-- 🤖 **LLM Integration**
-  - Support for open source models like Qwen
-  - OpenAI-compatible API interface
-  - Multi-tier LLM system for different task complexities
-
-### Tools and Integrations
-
-- 🔍 **Search and Retrieval**
-  - Web search via Tavily API
-  - Neural search with Jina
-  - Advanced content extraction
-
-### Development Features
-
-- 🐍 **Python Integration**
-  - Built-in Python REPL
-  - Code execution environment
-  - Package management with uv
-
-### Workflow Management
-
-- 📊 **Visualization and Control**
-  - Workflow graph visualization
-  - Multi-agent orchestration
-  - Task delegation and monitoring
-
-## Why localmanus?
-
-We believe in the power of open source collaboration. This project wouldn't be possible without the amazing work of projects like:
-
-- [Qwen](https://github.com/QwenLM/Qwen) for their open source LLMs
-- [Tavily](https://tavily.com/) for search capabilities
-- [Jina](https://jina.ai/) for crawl search technology
-- [Browser-use](https://pypi.org/project/browser-use/) for control browser
-- And many other open source contributors
-
-We're committed to giving back to the community and welcome contributions of all kinds - whether it's code, documentation, bug reports, or feature suggestions.
-
-## Setup
-
-### Prerequisites
-
-- [uv](https://github.com/astral-sh/uv) package manager
-
-### Installation
-
-localmanus leverages [uv](https://github.com/astral-sh/uv) as its package manager to streamline dependency management.
-Follow the steps below to set up a virtual environment and install the necessary dependencies:
+To print the graph as a Mermaid diagram:
 
 ```bash
-# Step 1: Create and activate a virtual environment through uv
-uv python install 3.13
-uv venv --python 3.13
-
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Step 2: Install project dependencies
-uv sync
+uv run python -m src.workflow
 ```
 
-By completing these steps, you'll ensure your environment is properly configured and ready for development.
+## Prompts
 
-### Configuration
+Each agent's behaviour lives in a Markdown file under `src/prompts/`. Editing
+`supervisor.md` changes routing; editing `planner.md` changes how work is broken
+down. No code change required.
 
-localmanus uses a three-tier LLM system with separate configurations for reasoning, basic tasks, and vision-language tasks. Create a `.env` file in the project root and configure the following environment variables:
+- **[`coordinator.md`](src/prompts/coordinator.md)** — Decides whether a message
+  is a real task or ordinary conversation. Emits `handoff_to_planner` to start
+  the workflow; anything else ends the run without one.
 
-```ini
-# Reasoning LLM Configuration (for complex reasoning tasks)
-REASONING_MODEL=your_reasoning_model
-REASONING_API_KEY=your_reasoning_api_key
-REASONING_BASE_URL=your_custom_base_url  # Optional
+- **[`planner.md`](src/prompts/planner.md)** — Breaks the request into steps and
+  assigns each to an agent. Must return a single raw JSON object; the caller
+  parses it into the plan the supervisor follows.
 
-# Basic LLM Configuration (for simpler tasks)
-BASIC_MODEL=your_basic_model
-BASIC_API_KEY=your_basic_api_key
-BASIC_BASE_URL=your_custom_base_url  # Optional
+- **[`supervisor.md`](src/prompts/supervisor.md)** — Coordinates the team,
+  choosing which specialist runs next and when the task is complete. Replies with
+  only `{"next": "worker_name"}` or `{"next": "FINISH"}`.
 
-# Vision-Language LLM Configuration (for tasks involving images)
-VL_MODEL=your_vl_model
-VL_API_KEY=your_vl_api_key
-VL_BASE_URL=your_custom_base_url  # Optional
+- **[`researcher.md`](src/prompts/researcher.md)** — Gathers information through
+  web search and page reading. Explicitly cannot do mathematics or file
+  operations, so the supervisor routes those elsewhere.
 
-# Tool API Keys
-TAVILY_API_KEY=your_tavily_api_key
-JINA_API_KEY=your_jina_api_key  # Optional
+- **[`coder.md`](src/prompts/coder.md)** — Python and shell work: executing code,
+  running calculations, and technical problem-solving.
 
-# Browser Configuration
-CHROME_INSTANCE_PATH=/Applications/Google Chrome.app/Contents/MacOS/Google Chrome  # Optional, path to Chrome executable
-CHROME_HEADLESS=False  # Optional, default is False
-CHROME_PROXY_SERVER=http://127.0.0.1:10809  # Optional, default is None
-CHROME_PROXY_USERNAME=  # Optional, default is None
-CHROME_PROXY_PASSWORD=  # Optional, default is None
-```
+- **[`browser.md`](src/prompts/browser.md)** — Navigating sites, interacting with
+  pages (clicking, typing, scrolling), and extracting content that a plain fetch
+  cannot reach.
 
-In addition to supporting LLMs compatible with OpenAI, localmanus also supports Azure LLMs. The configuration method is as follows:
+- **[`reporter.md`](src/prompts/reporter.md)** — Turns the collected results into
+  the final answer shown to the user.
 
-```ini
-# AZURE LLM Config
-AZURE_API_BASE=https://xxxx
-AZURE_API_KEY=xxxxx
-AZURE_API_VERSION=2023-07-01-preview
+### How prompts are rendered
 
-# Reasoning LLM (for complex reasoning tasks)
-REASONING_AZURE_DEPLOYMENT=xxx
+[`src/prompts/template.py`](src/prompts/template.py) loads the Markdown file,
+substitutes variables written as `<<VAR>>` (such as `<<CURRENT_TIME>>` and
+`<<TEAM_MEMBERS>>`), and prepends the result as the system message.
 
-# Non-reasoning LLM (for straightforward tasks)
-BASIC_AZURE_DEPLOYMENT=gpt-4o-2024-08-06
+Braces are escaped before substitution, which is why prompts use `<<VAR>>`
+rather than `{VAR}`: the files contain JSON examples that would otherwise be
+read as template placeholders.
 
-# Vision-language LLM (for tasks requiring visual understanding)
-VL_AZURE_DEPLOYMENT=gpt-4o-2024-08-06
-```
+## Configuration
 
-> **Note:**
->
-> - The system uses different models for different types of tasks:
->   - Reasoning LLM for complex decision-making and analysis
->   - Basic LLM for simpler text-based tasks
->   - Vision-Language LLM for tasks involving image understanding
-> - You can customize the base URLs for all LLMs independently, and you can use LiteLLM's board LLM support by following [this guide](https://docs.litellm.ai/docs/providers).
-> - Each LLM can use different API keys if needed
-> - Jina API key is optional. Provide your own key to access a higher rate limit (get your API key at [jina.ai](https://jina.ai/))
-> - Tavily search is configured to return a maximum of 5 results by default (get your API key at [app.tavily.com](https://app.tavily.com/))
-
-You can copy the `.env.example` file as a template to get started:
+Copy `.env.example` to `.env` and fill in the keys. Three model slots are used:
 
 ```bash
-cp .env.example .env
+# Complex reasoning: planning
+REASONING_MODEL=openai/gpt-5.5
+REASONING_BASE_URL=https://your-endpoint/v1
+REASONING_API_KEY=sk-...
+
+# Everyday work: coordination, routing, research, code, reports
+BASIC_MODEL=openai/gpt-5.4-mini
+BASIC_BASE_URL=https://your-endpoint/v1
+BASIC_API_KEY=sk-...
+
+# Browser control; use an image-capable model if you have one
+VL_MODEL=openai/gpt-5.5
+VL_BASE_URL=https://your-endpoint/v1
+VL_API_KEY=sk-...
+
+# Web search. Optional, but research is much weaker without it.
+TAVILY_API_KEY=tvly-...
+JINA_API_KEY=            # optional, raises the page-reading rate limit
+
+CHROME_HEADLESS=True
 ```
 
-### Configure Pre-commit Hook
+**The `openai/` prefix matters.** `src/llms/llm.py` routes on whether the model
+name contains a `/`. With it, requests go through LiteLLM and honour your
+`*_BASE_URL`. Without it, the reasoning slot falls back to a hardcoded DeepSeek
+client and ignores the base URL entirely.
 
-localmanus includes a pre-commit hook that runs linting and formatting checks before each commit. To set it up:
+Any OpenAI-compatible endpoint works. Azure is supported through the
+`AZURE_*` settings in `.env.example`.
 
-1. Make the pre-commit script executable:
-
-```bash
-chmod +x pre-commit
-```
-
-2. Install the pre-commit hook:
-
-```bash
-ln -s ../../pre-commit .git/hooks/pre-commit
-```
-
-The pre-commit hook will automatically:
-
-- Run linting checks (`make lint`)
-- Run code formatting (`make format`)
-- Add any reformatted files back to staging
-- Prevent commits if there are any linting or formatting errors
+Which agent uses which slot is set in `src/config/agents.py`.
 
 ## Usage
 
-### Basic Execution
-
-To run localmanus with default settings:
+### Web UI
 
 ```bash
-uv run main.py
+make serve      # http://localhost:8000
 ```
+
+The composer has two toggles. **Deep Think** plans with the reasoning model
+instead of the basic one; **Search** runs a web search before planning so the
+plan is grounded in current results.
+
+### Command line
+
+```bash
+uv run main.py "What is the current population of Tokyo?"
+uv run main.py                    # prompts for a query
+```
+
+Runs the same graph without the server, and prints the full message history.
+Both toggles are always on in this mode.
 
 ### API Server
 
-localmanus provides a FastAPI-based API server with streaming support:
+A FastAPI server with streaming support. It serves both the API and the web UI.
 
 ```bash
-# Start the API server
 make serve
 
-# Or run directly
+# or directly
 uv run server.py
 ```
 
-The API server exposes the following endpoints:
+It listens on `$PORT`, defaulting to 8000.
 
-- `POST /api/chat/stream`: Chat endpoint for LangGraph invoke with streaming support
-  - Request body:
-  ```json
-  {
-    "messages": [{ "role": "user", "content": "Your query here" }],
-    "debug": false
-  }
-  ```
-  - Returns a Server-Sent Events (SSE) stream with the agent's responses
-
-### Advanced Configuration
-
-localmanus can be customized through various configuration files in the `src/config` directory:
-
-- `env.py`: Configure LLM models, API keys, and base URLs
-- `tools.py`: Adjust tool-specific settings (e.g., Tavily search results limit)
-- `agents.py`: Modify team composition and agent system prompts
-
-### Agent Prompts System
-
-localmanus uses a sophisticated prompting system in the `src/prompts` directory to define agent behaviors and responsibilities:
-
-#### Core Agent Roles
-
-- **Supervisor ([`src/prompts/supervisor.md`](src/prompts/supervisor.md))**: Coordinates the team and delegates tasks by analyzing requests and determining which specialist should handle them. Makes decisions about task completion and workflow transitions.
-
-- **Researcher ([`src/prompts/researcher.md`](src/prompts/researcher.md))**: Specializes in information gathering through web searches and data collection. Uses Tavily search and web crawling capabilities while avoiding mathematical computations or file operations.
-
-- **Coder ([`src/prompts/coder.md`](src/prompts/coder.md))**: Professional software engineer role focused on Python and bash scripting. Handles:
-
-  - Python code execution and analysis
-  - Shell command execution
-  - Technical problem-solving and implementation
-
-- **File Manager ([`src/prompts/file_manager.md`](src/prompts/file_manager.md))**: Handles all file system operations with a focus on properly formatting and saving content in markdown format.
-
-- **Browser ([`src/prompts/browser.md`](src/prompts/browser.md))**: Web interaction specialist that handles:
-  - Website navigation
-  - Page interaction (clicking, typing, scrolling)
-  - Content extraction from web pages
-
-#### Prompt System Architecture
-
-The prompts system uses a template engine ([`src/prompts/template.py`](src/prompts/template.py)) that:
-
-- Loads role-specific markdown templates
-- Handles variable substitution (e.g., current time, team member information)
-- Formats system prompts for each agent
-
-Each agent's prompt is defined in a separate markdown file, making it easy to modify behavior and responsibilities without changing the underlying code.
-
-## Web UI
-
-localmanus serves a built-in web UI from the same FastAPI process. Start the server and open:
-
-```text
-http://127.0.0.1:8000/
+```
+POST /api/chat/stream
 ```
 
-The UI streams agent messages, tool activity, and workflow state from `POST /api/chat/stream`. API documentation remains available at `/docs`.
+```json
+{
+  "messages": [{ "role": "user", "content": "Your query here" }],
+  "debug": false,
+  "deep_thinking_mode": false,
+  "search_before_planning": false
+}
+```
+
+Returns a Server-Sent Events stream. Events: `start_of_workflow`,
+`start_of_agent`, `start_of_llm`, `message`, `tool_call`, `tool_call_result`,
+`end_of_agent`, `end_of_llm`, `end_of_workflow`, `final_session_state`.
+
+Also available:
+
+- `GET /api/models` — the model names currently configured
+- `GET /api/browser_history/{filename}` — a browser session recording
+
+## Project Layout
+
+```
+server.py                     starts the web server
+main.py                       command-line entry point
+
+src/graph/
+  builder.py                  registers the seven nodes
+  nodes.py                    all seven agents and their routing
+  types.py                    the shared State passed between nodes
+src/agents/agents.py          the three tool-using agents
+src/prompts/*.md              each agent's instructions
+src/llms/llm.py               model clients, one per slot
+src/tools/                    search, crawl, python, bash, browser
+src/crawler/                  fetch a page and convert it to Markdown
+src/service/workflow_service.py   turns graph events into an SSE stream
+src/api/app.py                HTTP routes
+web/                          the UI: one HTML, one CSS, one JS file
+```
+
+## Deployment
+
+The `Dockerfile` builds on Microsoft's Playwright image so Chromium is available
+for the browser agent, and `railway.json` tells Railway to use it rather than
+autodetecting a Python buildpack.
+
+```bash
+railway up
+```
+
+Set the same variables from `.env` as Railway environment variables. `.env`
+itself is never copied into the image.
+
+Serverless platforms are not suitable: workflows run for minutes and hold an
+open SSE connection, and the browser agent needs a real Chromium install.
 
 ## Development
 
-### Testing
+```bash
+make install-dev    # dev and test dependencies
+make format         # black
+make lint           # black --check
+make test           # pytest
+make coverage       # pytest with coverage
+```
 
-Run the test suite:
+### Adding an agent
+
+1. Write its prompt in `src/prompts/<name>.md`.
+2. Add a node function in `src/graph/nodes.py`.
+3. Register it in `src/graph/builder.py`.
+4. Add it to `TEAM_MEMBERS` in `src/config/__init__.py` so the supervisor can
+   route to it.
+5. Give it a model slot in `src/config/agents.py`.
+
+### Pre-commit hook
 
 ```bash
-# Run all tests
-make test
-
-# Run specific test file
-pytest tests/integration/test_workflow.py
-
-# Run with coverage
-make coverage
+chmod +x pre-commit
+ln -s ../../pre-commit .git/hooks/pre-commit
 ```
+
+Formats staged Python files and blocks the commit if linting fails.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
