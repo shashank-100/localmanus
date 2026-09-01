@@ -5,6 +5,8 @@ work, searches the web, runs code, drives a browser when needed, and writes the
 answer. Built on [LangGraph](https://github.com/langchain-ai/langgraph) and
 FastAPI, with a dependency-free web UI.
 
+**Live:** https://localmanus-production.up.railway.app
+
 ## Demo
 
 > **Task**: Calculate the influence index of DeepSeek R1 on HuggingFace, as a
