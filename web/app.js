@@ -266,17 +266,56 @@ function renderPlanOrText(text) {
 
 // Minimal Markdown renderer for agent prose: bold, italics, inline code,
 // headings, and lists. Input is escaped first, so this never injects HTML.
+// Turn common LaTeX into readable plain math. Nothing here renders LaTeX, so
+// \cdot and \frac{a}{b} would otherwise reach the page as raw backslashes.
+function plainMath(text) {
+  // Strip LaTeX's digit-grouping braces first: 143{,}000 -> 143,000. Otherwise
+  // they nest inside \frac{...}{...} and defeat the match below.
+  return String(text)
+    .replace(/\{([,.])\}/g, '$1')
+    .replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, '($1) / ($2)')
+    .replace(/\\cdot|\\times/g, '×')
+    .replace(/\\div/g, '÷')
+    .replace(/\\approx/g, '≈')
+    .replace(/\\le(?![a-z])/g, '≤')
+    .replace(/\\ge(?![a-z])/g, '≥')
+    .replace(/\\neq/g, '≠')
+    .replace(/\\%/g, '%')
+    .replace(/\\[,;!:]/g, ' ')
+    .replace(/\\left|\\right/g, '')
+    .replace(/\\text\{([^{}]*)\}/g, '$1')
+    .replace(/\{([^{}]*)\}/g, '$1')
+    .replace(/\\\\/g, '')
+    .replace(/[ \t]{2,}/g, ' ');
+}
+
 function renderMarkdown(value) {
   const lines = escapeHtml(String(value || '')).split('\n');
   const html = [];
   let inList = false;
   const inline = (text) =>
-    text
+    plainMath(text)
+      .replace(/\\\(([^)]*)\\\)/g, '$1')
       .replace(/`([^`]+)`/g, '<code>$1</code>')
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
       .replace(/(^|\W)\*([^*\n]+)\*/g, '$1<em>$2</em>');
   let fence = null;
+  let math = null;
   for (const line of lines) {
+    // Models often emit display math as \[ ... \]. Nothing here renders LaTeX,
+    // so collect the block and show it as plain math instead of raw markup.
+    const trimmed = line.trim();
+    if (math === null && (trimmed === '\\[' || trimmed === '$$')) { math = []; continue; }
+    if (math !== null) {
+      if (trimmed === '\\]' || trimmed === '$$') {
+        const body = math.map(plainMath).filter((l) => l.trim()).join('\n');
+        if (body) html.push(`<pre class="math-block">${body}</pre>`);
+        math = null;
+      } else {
+        math.push(line);
+      }
+      continue;
+    }
     const fenceMark = line.match(/^\s*```(\w*)\s*$/);
     if (fenceMark) {
       if (fence === null) { fence = []; } // opening
