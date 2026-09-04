@@ -1,0 +1,11 @@
+# railway up uploads the working directory before Docker applies .dockerignore,
+# so these have to be excluded here or the upload times out.
+.venv
+.git
+assets
+static
+.pytest_cache
+__pycache__
+*.pyc
+.coverage
+.DS_Store
