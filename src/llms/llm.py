@@ -103,6 +103,19 @@ class _ChatLiteLLM(ChatLiteLLM):
         return super().bind_tools(tools, tool_choice=tool_choice, **kwargs)
 
 
+def _rejects_temperature(model: str) -> bool:
+    """
+    Whether a model only accepts its default temperature.
+
+    OpenAI's reasoning models return a 400 for any explicit temperature,
+    including the 0.0 this project otherwise uses everywhere.
+    """
+    name = model.split("/", 1)[-1]
+    return name.startswith(("gpt-5", "o1", "o3", "o4")) and not name.startswith(
+        ("gpt-5.4-mini", "gpt-5-chat")
+    )
+
+
 def create_litellm_model(
     model: str,
     base_url: Optional[str] = None,
@@ -116,12 +129,12 @@ def create_litellm_model(
 
     # langchain-litellm does not stream by default, unlike the langchain-community
     # class it replaced. Without this the UI receives no token deltas.
-    llm_kwargs = {
-        "model": model,
-        "temperature": temperature,
-        "streaming": True,
-        **kwargs,
-    }
+    llm_kwargs = {"model": model, "streaming": True, **kwargs}
+
+    # Reasoning models reject any temperature other than the default, so only
+    # send it to models that accept one.
+    if not _rejects_temperature(model):
+        llm_kwargs["temperature"] = temperature
 
     if base_url:  # This will handle None or empty string
         llm_kwargs["api_base"] = base_url
