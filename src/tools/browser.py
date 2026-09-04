@@ -7,6 +7,7 @@ from browser_use import AgentHistoryList, BrowserProfile
 from browser_use import Agent as BrowserAgent
 from browser_use.llm.litellm.chat import ChatLiteLLM as BrowserChatLiteLLM
 from src.config import VL_MODEL, VL_BASE_URL, VL_API_KEY
+from src.llms.llm import _rejects_temperature
 from src.tools.decorators import create_logged_tool
 from src.config import (
     CHROME_INSTANCE_PATH,
@@ -32,11 +33,14 @@ if CHROME_PROXY_SERVER:
 browser_profile = BrowserProfile(**profile_kwargs)
 
 # browser-use 0.13 dropped LangChain support and requires its own LLM client,
-# so the browser agent builds one from the same vision-model settings.
+# so the browser agent builds one from the same vision-model settings. Its
+# ChatLiteLLM defaults temperature to 0.0, which reasoning models reject, so
+# pass None for those to send no temperature at all.
 browser_llm = BrowserChatLiteLLM(
     model=VL_MODEL,
     api_key=VL_API_KEY,
     api_base=VL_BASE_URL,
+    temperature=None if _rejects_temperature(VL_MODEL) else 0.0,
 )
 
 
