@@ -10,7 +10,6 @@ COPY pyproject.toml uv.lock README.md .python-version ./
 COPY src ./src
 COPY main.py server.py Makefile .env.example ./
 COPY web ./web
-COPY scripts ./scripts
 
 # The Playwright image ships Python 3.12, so make uv download the 3.13 this
 # project pins. UV_PYTHON_DOWNLOADS/PREFERENCE stop uv from silently falling
